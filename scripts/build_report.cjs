@@ -402,8 +402,8 @@ children.push(H2('11.2 GitHub Repository'));
 children.push(P('Repository: **https://github.com/Shryes19/labtrace** - contains the complete source code, SQL and NoSQL scripts, diagrams, screenshots, this report and a README with step-by-step setup instructions (docker compose, database scripts, npm run kb:sync, npm run dev).'));
 children.push(H2('11.3 Individual Contribution'));
 children.push(table(['SRN', 'Name', 'Contribution'], [
-  ['PES1UG24AM272', 'Shryes M', 'ER model and relational schema design; PostgreSQL DDL with constraints; triggers, stored procedures, functions and views; role-based access control with database roles and row-level security; sample data generator; analytical SQL queries (join, nested, correlated, recursive CTE)'],
-  ['PES1UG24AM261', 'Shesanth K', 'MongoDB knowledge base and vector (semantic) search; Next.js pages and API routes with PostgreSQL / MongoDB integration; authentication (bcrypt, JWT, route proxy); reliability analytics dashboard; testing (DML demo and automated end-to-end test), screenshots and documentation'],
+  ['PES1UG24AM272', 'Shryes M', 'MongoDB knowledge base and vector (semantic) search; Next.js pages and API routes with PostgreSQL / MongoDB integration; authentication (bcrypt, JWT, route proxy); reliability analytics dashboard; testing (DML demo and automated end-to-end test), screenshots and documentation'],
+  ['PES1UG24AM261', 'Shesanth K', 'ER model and relational schema design; PostgreSQL DDL with constraints; triggers, stored procedures, functions and views; role-based access control with database roles and row-level security; sample data generator; analytical SQL queries (join, nested, correlated, recursive CTE)'],
 ], [1900, 1800, 5326]));
 
 // ---------- 12 Rubrics ----------
