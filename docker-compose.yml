@@ -1,15 +1,14 @@
-# Local databases for LabTrace:  docker compose up -d
 services:
   postgres:
     image: postgres:16
     environment:
       POSTGRES_PASSWORD: postgres
-    ports: ["5432:5432"]
+    ports: ["5433:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
 
   mongodb:
-    # MongoDB Atlas Local = MongoDB + Atlas Search / Vector Search on your machine
-    image: mongodb/mongodb-atlas-local:8.0
+    image: mongo:7
+    command: ["--wiredTigerCacheSizeGB", "0.25"]
     ports: ["27017:27017"]
     volumes: [mongodata:/data/db]
 
