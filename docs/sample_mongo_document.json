@@ -1,0 +1,37 @@
+{
+  "_id": "bcb2a9a345037e90c28c7db4",
+  "incident_id": 168,
+  "notes": [],
+  "tags": [
+    "desktop workstation",
+    "high"
+  ],
+  "created_at": "2026-11-11T20:31:39.212Z",
+  "title": "PC switches off while compiling",
+  "description": "The computer gets too hot and turns off after some time when I compile big programs.",
+  "severity": "high",
+  "status": "resolved",
+  "equipment": {
+    "id": 4,
+    "asset_tag": "LT-CSL-004",
+    "name": "Dell OptiPlex Desktop #4",
+    "category": "Desktop Workstation",
+    "lab_code": "CSL-101"
+  },
+  "diagnosis": "CPU temperature 96 C under load; heat sink clogged with dust, thermal paste dry.",
+  "root_cause": "Thermal / cooling",
+  "resolution": "Cleaned heat sink and fans, applied fresh thermal paste, load temperature now 67 C.",
+  "outcome": "fixed",
+  "technician": "Ravi Kumar",
+  "reported_at": "2026-11-11T20:31:39.202Z",
+  "resolved_at": "2026-11-11T20:31:52.689Z",
+  "embedding": [
+    0,
+    0,
+    0.0198,
+    0,
+    "… 380 more values"
+  ],
+  "embedding_model": "labtrace-concept-hash-v1",
+  "updated_at": "2026-11-11T20:31:52.702Z"
+}

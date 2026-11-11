@@ -1,0 +1,79 @@
+                 List of relations
+  Schema  |         Name         | Type  |  Owner   
+----------+----------------------+-------+----------
+ labtrace | assignments          | table | postgres
+ labtrace | equipment            | table | postgres
+ labtrace | equipment_categories | table | postgres
+ labtrace | incident_status_log  | table | postgres
+ labtrace | incidents            | table | postgres
+ labtrace | labs                 | table | postgres
+ labtrace | maintenance_records  | table | postgres
+ labtrace | part_usage           | table | postgres
+ labtrace | spare_parts          | table | postgres
+ labtrace | technician_skills    | table | postgres
+ labtrace | user_phones          | table | postgres
+ labtrace | users                | table | postgres
+(12 rows)
+
+                                                                                                                                                                                                           List of functions
+  Schema  |              Name               |                                                        Result data type                                                         |                                                                                                               Argument data types                                                                                                               | Type 
+----------+---------------------------------+---------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------
+ labtrace | app_uid                         | integer                                                                                                                         |                                                                                                                                                                                                                                                 | func
+ labtrace | fn_auth_lookup                  | TABLE(user_id integer, full_name character varying, role character varying, password_hash character varying, is_active boolean) | p_email text                                                                                                                                                                                                                                    | func
+ labtrace | fn_equipment_mtbf_hours         | numeric                                                                                                                         | p_equipment_id integer                                                                                                                                                                                                                          | func
+ labtrace | fn_equipment_mttr_hours         | numeric                                                                                                                         | p_equipment_id integer                                                                                                                                                                                                                          | func
+ labtrace | fn_predicted_next_failure       | date                                                                                                                            | p_equipment_id integer                                                                                                                                                                                                                          | func
+ labtrace | fn_register_student             | integer                                                                                                                         | p_institution_id text, p_full_name text, p_email text, p_password_hash text, p_department text                                                                                                                                                  | func
+ labtrace | fn_reliability_score            | numeric                                                                                                                         | p_equipment_id integer                                                                                                                                                                                                                          | func
+ labtrace | fn_repeat_failures              | integer                                                                                                                         | p_equipment_id integer, p_window_days integer DEFAULT 30                                                                                                                                                                                        | func
+ labtrace | fn_risk_level                   | text                                                                                                                            | p_score numeric                                                                                                                                                                                                                                 | func
+ labtrace | sp_assign_technician            |                                                                                                                                 | IN p_incident_id integer, INOUT p_technician_id integer DEFAULT NULL::integer, IN p_notes text DEFAULT NULL::text                                                                                                                               | proc
+ labtrace | sp_complete_maintenance         |                                                                                                                                 | IN p_incident_id integer, IN p_diagnosis text, IN p_root_cause text, IN p_action_taken text, IN p_outcome text, IN p_started_at timestamp with time zone, IN p_parts jsonb DEFAULT '[]'::jsonb, INOUT p_record_id integer DEFAULT NULL::integer | proc
+ labtrace | sp_restock_part                 |                                                                                                                                 | IN p_part_id integer, IN p_qty integer                                                                                                                                                                                                          | proc
+ labtrace | trg_fn_assignment_after_insert  | trigger                                                                                                                         |                                                                                                                                                                                                                                                 | func
+ labtrace | trg_fn_assignment_before_insert | trigger                                                                                                                         |                                                                                                                                                                                                                                                 | func
+ labtrace | trg_fn_incident_after_insert    | trigger                                                                                                                         |                                                                                                                                                                                                                                                 | func
+ labtrace | trg_fn_incident_status_log      | trigger                                                                                                                         |                                                                                                                                                                                                                                                 | func
+ labtrace | trg_fn_incident_validate_status | trigger                                                                                                                         |                                                                                                                                                                                                                                                 | func
+ labtrace | trg_fn_mr_check_technician      | trigger                                                                                                                         |                                                                                                                                                                                                                                                 | func
+ labtrace | trg_fn_part_usage_stock         | trigger                                                                                                                         |                                                                                                                                                                                                                                                 | func
+(19 rows)
+
+            tgname            |           tgrelid            
+------------------------------+------------------------------
+ trg_incident_after_insert    | labtrace.incidents
+ trg_incident_status_log      | labtrace.incidents
+ trg_incident_validate_status | labtrace.incidents
+ trg_assignment_after_insert  | labtrace.assignments
+ trg_assignment_before_insert | labtrace.assignments
+ trg_mr_check_technician      | labtrace.maintenance_records
+ trg_part_usage_stock         | labtrace.part_usage
+(7 rows)
+
+ schemaname |      tablename      |      policyname      |           roles            |  cmd   
+------------+---------------------+----------------------+----------------------------+--------
+ labtrace   | assignments         | p_asg_student        | {lt_student}               | SELECT
+ labtrace   | assignments         | p_asg_tech           | {lt_technician}            | SELECT
+ labtrace   | assignments         | p_asg_admin          | {lt_admin}                 | ALL
+ labtrace   | incident_status_log | p_log_admin          | {lt_admin}                 | ALL
+ labtrace   | incident_status_log | p_log_tech           | {lt_technician}            | SELECT
+ labtrace   | incident_status_log | p_log_student        | {lt_student}               | SELECT
+ labtrace   | incidents           | p_inc_student_select | {lt_student}               | SELECT
+ labtrace   | incidents           | p_inc_student_update | {lt_student}               | UPDATE
+ labtrace   | incidents           | p_inc_student_insert | {lt_student}               | INSERT
+ labtrace   | incidents           | p_inc_tech_update    | {lt_technician}            | UPDATE
+ labtrace   | incidents           | p_inc_tech_select    | {lt_technician}            | SELECT
+ labtrace   | incidents           | p_inc_admin_all      | {lt_admin}                 | ALL
+ labtrace   | maintenance_records | p_mr_tech_select     | {lt_technician}            | SELECT
+ labtrace   | maintenance_records | p_mr_tech_insert     | {lt_technician}            | INSERT
+ labtrace   | maintenance_records | p_mr_tech_update     | {lt_technician}            | UPDATE
+ labtrace   | maintenance_records | p_mr_student         | {lt_student}               | SELECT
+ labtrace   | maintenance_records | p_mr_admin           | {lt_admin}                 | ALL
+ labtrace   | part_usage          | p_pu_admin           | {lt_admin}                 | ALL
+ labtrace   | part_usage          | p_pu_tech_select     | {lt_technician}            | SELECT
+ labtrace   | part_usage          | p_pu_tech_insert     | {lt_technician}            | INSERT
+ labtrace   | part_usage          | p_pu_student         | {lt_student}               | SELECT
+ labtrace   | user_phones         | p_ph_admin           | {lt_admin}                 | ALL
+ labtrace   | user_phones         | p_ph_self            | {lt_student,lt_technician} | ALL
+(23 rows)
+

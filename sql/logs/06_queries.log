@@ -1,0 +1,381 @@
+SET search_path TO labtrace, public;
+SET
+SELECT e.asset_tag, i.incident_id, i.title, i.severity, i.status,
+       t.full_name AS technician, m.diagnosis, m.action_taken, m.labour_hours
+FROM   equipment e
+JOIN   incidents i                ON i.equipment_id = e.equipment_id
+LEFT JOIN assignments a           ON a.incident_id  = i.incident_id AND a.is_active
+LEFT JOIN users t                 ON t.user_id      = a.technician_id
+LEFT JOIN maintenance_records m   ON m.incident_id  = i.incident_id
+WHERE  e.asset_tag = 'LT-CSL-003'
+ORDER  BY i.reported_at DESC;
+ asset_tag  | incident_id |              title              | severity |  status  | technician |                                                      diagnosis                                                       |                                           action_taken                                           | labour_hours 
+------------+-------------+---------------------------------+----------+----------+------------+----------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------+--------------
+ LT-CSL-003 |         154 | System shuts down unexpectedly  | high     | closed   |            | CPU temperature reached 96 C under load; heat sink clogged with dust and thermal paste dried out (thermal shutdown). | Cleaned heat sink and chassis fans, re-applied thermal paste, verified load temperature at 68 C. |        38.77
+ LT-CSL-003 |         153 | System shuts down unexpectedly  | high     | closed   |            | CPU temperature reached 96 C under load; heat sink clogged with dust and thermal paste dried out (thermal shutdown). | Cleaned heat sink and chassis fans, re-applied thermal paste, verified load temperature at 68 C. |         1.10
+ LT-CSL-003 |         152 | System shuts down unexpectedly  | high     | closed   |            | CPU temperature reached 96 C under load; heat sink clogged with dust and thermal paste dried out (thermal shutdown). | Cleaned heat sink and chassis fans, re-applied thermal paste, verified load temperature at 68 C. |        17.57
+ LT-CSL-003 |         151 | System shuts down unexpectedly  | high     | closed   |            | CPU temperature reached 96 C under load; heat sink clogged with dust and thermal paste dried out (thermal shutdown). | Cleaned heat sink and chassis fans, re-applied thermal paste, verified load temperature at 68 C. |        16.32
+ LT-CSL-003 |         128 | Keyboard / mouse not working    | low      | closed   |            | Peripheral failure - keyboard membrane damaged / mouse cable broken.                                                 | Replaced keyboard and mouse.                                                                     |        27.77
+ LT-CSL-003 |          97 | CPU fan noise and overheating   | high     | resolved |            | CPU cooler fan bearing worn out; fan RPM dropping below 600, causing thermal shutdown.                               | Replaced CPU cooler fan and applied fresh thermal paste.                                         |        44.42
+ LT-CSL-003 |          84 | System shuts down unexpectedly  | high     | closed   |            | CPU temperature reached 96 C under load; heat sink clogged with dust and thermal paste dried out (thermal shutdown). | Cleaned heat sink and chassis fans, re-applied thermal paste, verified load temperature at 68 C. |         1.85
+ LT-CSL-003 |          83 | System shuts down unexpectedly  | high     | closed   |            | CPU temperature reached 96 C under load; heat sink clogged with dust and thermal paste dried out (thermal shutdown). | Cleaned heat sink and chassis fans, re-applied thermal paste, verified load temperature at 68 C. |        17.17
+ LT-CSL-003 |          79 | No display / beep codes on boot | medium   | closed   |            | POST beep code indicated memory error; one DDR4 module failed memtest86.                                             | Replaced faulty 8GB RAM module and re-seated the second module; memtest passed.                  |        15.90
+ LT-CSL-003 |          69 | BIOS time resets                | low      | closed   |            | CMOS battery voltage 1.9V (dead).                                                                                    | Replaced CMOS battery and restored BIOS settings.                                                |        42.73
+ LT-CSL-003 |          52 | Keyboard / mouse not working    | low      | closed   |            | Peripheral failure - keyboard membrane damaged / mouse cable broken.                                                 | Replaced keyboard and mouse.                                                                     |        22.73
+ LT-CSL-003 |          45 | No power / dead system          | critical | resolved |            | SMPS failed - no 12V output on PSU tester; capacitor bulged.                                                         | Replaced 500W power supply unit and tested all rails.                                            |        34.37
+ LT-CSL-003 |          36 | No power / dead system          | critical | closed   |            | SMPS failed - no 12V output on PSU tester; capacitor bulged.                                                         | Replaced 500W power supply unit and tested all rails.                                            |        26.33
+ LT-CSL-003 |          22 | BIOS time resets                | low      | closed   |            | CMOS battery voltage 1.9V (dead).                                                                                    | Replaced CMOS battery and restored BIOS settings.                                                |        37.92
+(14 rows)
+
+SELECT l.lab_code, l.lab_name,
+       COUNT(i.incident_id)                                   AS total_incidents,
+       COUNT(*) FILTER (WHERE i.severity IN ('high','critical')) AS serious_incidents,
+       ROUND(AVG(EXTRACT(EPOCH FROM (i.resolved_at - i.reported_at))/3600)::numeric, 1) AS avg_resolution_hrs
+FROM   labs l
+JOIN   equipment e ON e.lab_id = l.lab_id
+JOIN   incidents i ON i.equipment_id = e.equipment_id
+GROUP  BY l.lab_id, l.lab_code, l.lab_name
+HAVING COUNT(i.incident_id) > 5
+ORDER  BY total_incidents DESC;
+ lab_code |             lab_name              | total_incidents | serious_incidents | avg_resolution_hrs 
+----------+-----------------------------------+-----------------+-------------------+--------------------
+ AIML-GPU | AI & ML GPU Research Lab          |              50 |                29 |               39.5
+ CSL-101  | Computer Science Lab 1            |              40 |                17 |               39.6
+ NET-201  | Computer Networks Lab             |              31 |                12 |               35.2
+ IOT-302  | IoT & Embedded Systems Lab        |              22 |                 0 |               43.2
+ ECE-110  | Electronics & Instrumentation Lab |              21 |                 0 |               39.8
+(5 rows)
+
+SELECT e.asset_tag, e.equipment_name, l.lab_code
+FROM   equipment e
+JOIN   labs l           ON l.lab_id = e.lab_id
+LEFT JOIN incidents i   ON i.equipment_id = e.equipment_id
+WHERE  i.incident_id IS NULL
+ORDER  BY e.asset_tag;
+ asset_tag  |      equipment_name      | lab_code 
+------------+--------------------------+----------
+ LT-ECE-035 | Digital Oscilloscope #1  | ECE-110
+ LT-ECE-039 | Function Generator #1    | ECE-110
+ LT-ECE-043 | DC Bench Power Supply #2 | ECE-110
+(3 rows)
+
+SELECT e.asset_tag, e.equipment_name, COUNT(*) AS failures
+FROM   equipment e JOIN incidents i ON i.equipment_id = e.equipment_id
+GROUP  BY e.equipment_id, e.asset_tag, e.equipment_name
+HAVING COUNT(*) > (SELECT AVG(cnt)
+                   FROM (SELECT COUNT(*) AS cnt FROM incidents GROUP BY equipment_id) x)
+ORDER  BY failures DESC;
+  asset_tag  |      equipment_name      | failures 
+-------------+--------------------------+----------
+ LT-AIML-014 | GPU Workstation #3       |       20
+ LT-CSL-003  | Dell OptiPlex Desktop #3 |       14
+ LT-AIML-012 | GPU Workstation #1       |       13
+ LT-CSL-011  | Epson Projector #1       |        7
+ LT-IOT-054  | Creality 3D Printer #2   |        6
+ LT-NET-023  | HP ProDesk Desktop #2    |        5
+ LT-CSL-006  | Dell OptiPlex Desktop #6 |        4
+ LT-AIML-018 | ThinkPad Laptop #1       |        4
+ LT-ECE-042  | DC Bench Power Supply #1 |        4
+ LT-NET-022  | HP ProDesk Desktop #1    |        4
+ LT-ECE-040  | Function Generator #2    |        4
+(11 rows)
+
+SELECT user_id, full_name
+FROM   users
+WHERE  role = 'technician'
+  AND  user_id IN (SELECT m.technician_id
+                   FROM   maintenance_records m
+                   WHERE  m.record_id IN (SELECT pu.record_id
+                                          FROM   part_usage pu
+                                          JOIN   spare_parts sp ON sp.part_id = pu.part_id
+                                          WHERE  sp.part_category = 'Power'));
+ user_id |  full_name  
+---------+-------------
+       3 | Ravi Kumar
+       4 | Suresh Babu
+       8 | Kavya Gowda
+(3 rows)
+
+SELECT e.asset_tag, i.incident_id, i.title, i.reported_at
+FROM   incidents i
+JOIN   equipment e ON e.equipment_id = i.equipment_id
+WHERE  i.reported_at = (SELECT MAX(i2.reported_at)
+                        FROM   incidents i2
+                        WHERE  i2.equipment_id = i.equipment_id)   -- correlated
+ORDER  BY i.reported_at DESC
+LIMIT  15;
+  asset_tag  | incident_id |               title               |         reported_at          
+-------------+-------------+-----------------------------------+------------------------------
+ LT-CSL-004  |         169 | Desktop powers off when compiling | 2026-11-11 20:31:55.83729+00
+ LT-CSL-009  |         159 | No power / dead system            | 2026-11-11 10:06:00+00
+ LT-CSL-006  |         155 | Repeated blue screen / OS crash   | 2026-11-11 07:42:00+00
+ LT-NET-025  |         156 | CPU fan noise and overheating     | 2026-11-11 00:30:00+00
+ LT-AIML-020 |         157 | Display flicker                   | 2026-11-10 10:06:00+00
+ LT-HPC-057  |         165 | Intermittent network drops        | 2026-11-10 05:18:00+00
+ LT-IOT-054  |         160 | Nozzle clogged                    | 2026-11-10 00:30:00+00
+ LT-NET-031  |         158 | Lab offline - router              | 2026-11-09 12:30:00+00
+ LT-HPC-055  |         163 | RAID array degraded               | 2026-11-09 07:42:00+00
+ LT-AIML-021 |         161 | Projector overheating shutdown    | 2026-11-09 00:30:00+00
+ LT-CSL-008  |         162 | Very slow boot / disk errors      | 2026-11-08 12:30:00+00
+ LT-ECE-036  |         167 | No trace on channel               | 2026-11-08 00:30:00+00
+ LT-IOT-047  |         164 | Board does not boot               | 2026-11-07 12:30:00+00
+ LT-ECE-041  |         166 | No output signal                  | 2026-11-05 12:30:00+00
+ LT-IOT-050  |         150 | Board not detected over USB       | 2026-10-31 08:46:46+00
+(15 rows)
+
+SELECT e.asset_tag, cur.incident_id, cur.title, cur.reported_at
+FROM   incidents cur
+JOIN   equipment e ON e.equipment_id = cur.equipment_id
+WHERE  EXISTS (SELECT 1 FROM incidents prev
+               WHERE  prev.equipment_id = cur.equipment_id
+                 AND  prev.incident_id <> cur.incident_id
+                 AND  prev.resolved_at IS NOT NULL
+                 AND  cur.reported_at BETWEEN prev.resolved_at AND prev.resolved_at + INTERVAL '30 days')
+ORDER  BY e.asset_tag, cur.reported_at;
+  asset_tag  | incident_id |               title               |         reported_at          
+-------------+-------------+-----------------------------------+------------------------------
+ LT-AIML-012 |          60 | GPU thermal throttling            | 2025-10-14 17:16:43+00
+ LT-AIML-012 |          66 | GPU not detected                  | 2025-11-01 18:11:23+00
+ LT-AIML-012 |         109 | System freeze - memory errors     | 2026-04-28 09:50:12+00
+ LT-AIML-012 |         110 | System freeze - memory errors     | 2026-05-09 06:06:50+00
+ LT-AIML-012 |         118 | GPU not detected                  | 2026-05-31 16:40:06+00
+ LT-AIML-014 |          26 | GPU not detected                  | 2025-04-25 08:50:24+00
+ LT-AIML-014 |          28 | GPU thermal throttling            | 2025-05-23 13:15:06+00
+ LT-AIML-014 |          42 | GPU thermal throttling            | 2025-07-15 11:25:12+00
+ LT-AIML-014 |          47 | GPU thermal throttling            | 2025-08-06 08:19:50+00
+ LT-AIML-014 |          80 | GPU thermal throttling            | 2025-12-25 14:03:06+00
+ LT-AIML-014 |          90 | GPU thermal throttling            | 2026-01-23 11:19:35+00
+ LT-AIML-014 |         102 | GPU thermal throttling            | 2026-03-31 07:35:40+00
+ LT-AIML-014 |         105 | GPU not detected                  | 2026-04-22 17:34:00+00
+ LT-AIML-014 |         113 | System freeze - memory errors     | 2026-05-16 12:48:46+00
+ LT-AIML-014 |         116 | GPU thermal throttling            | 2026-05-26 12:29:52+00
+ LT-AIML-018 |         121 | Display flicker                   | 2026-06-17 06:06:25+00
+ LT-CSL-003  |          45 | No power / dead system            | 2025-07-22 11:02:15+00
+ LT-CSL-003  |          83 | System shuts down unexpectedly    | 2026-01-01 10:55:10+00
+ LT-CSL-003  |          84 | System shuts down unexpectedly    | 2026-01-05 08:35:15+00
+ LT-CSL-003  |         151 | System shuts down unexpectedly    | 2026-08-08 09:30:00+00
+ LT-CSL-003  |         152 | System shuts down unexpectedly    | 2026-09-02 09:30:00+00
+ LT-CSL-003  |         153 | System shuts down unexpectedly    | 2026-09-20 09:30:00+00
+ LT-CSL-003  |         154 | System shuts down unexpectedly    | 2026-10-11 09:30:00+00
+ LT-CSL-004  |         169 | Desktop powers off when compiling | 2026-11-11 20:31:55.83729+00
+ LT-CSL-011  |         124 | Dim projector image               | 2026-06-27 18:13:22+00
+ LT-ECE-042  |          81 | Output voltage fluctuating        | 2025-12-27 06:09:29+00
+ LT-IOT-050  |         100 | Board not detected over USB       | 2026-03-15 09:28:53+00
+ LT-IOT-054  |          17 | Nozzle clogged                    | 2025-02-26 07:04:23+00
+ LT-IOT-054  |          67 | Nozzle clogged                    | 2025-11-06 15:59:41+00
+ LT-NET-034  |          18 | Wi-Fi slow / disconnecting        | 2025-03-01 06:28:53+00
+(30 rows)
+
+SELECT u.full_name,
+       (SELECT ROUND(AVG(m.labour_hours),2) FROM maintenance_records m WHERE m.technician_id = u.user_id) AS avg_hours
+FROM   users u
+WHERE  u.role = 'technician'
+  AND  (SELECT AVG(m.labour_hours) FROM maintenance_records m WHERE m.technician_id = u.user_id)
+       < (SELECT AVG(labour_hours) FROM maintenance_records);
+  full_name  | avg_hours 
+-------------+-----------
+ Ravi Kumar  |     24.05
+ Anil Shetty |     23.07
+ Priya Nair  |     23.16
+ Kavya Gowda |     22.41
+(4 rows)
+
+WITH RECURSIVE tree AS (
+    SELECT category_id, category_name, parent_id, 0 AS depth,
+           category_name::TEXT AS path, ARRAY[category_id] AS id_path
+    FROM   equipment_categories WHERE parent_id IS NULL
+    UNION ALL
+    SELECT c.category_id, c.category_name, c.parent_id, t.depth + 1,
+           t.path || ' > ' || c.category_name, t.id_path || c.category_id
+    FROM   equipment_categories c JOIN tree t ON c.parent_id = t.category_id
+)
+SELECT repeat('    ', t.depth) || t.category_name AS category, t.path, t.depth,
+       (SELECT COUNT(*) FROM equipment e
+          JOIN tree d ON d.category_id = e.category_id
+         WHERE t.category_id = ANY (d.id_path))  AS assets_in_subtree
+FROM   tree t
+ORDER  BY t.id_path;
+         category          |                            path                             | depth | assets_in_subtree 
+---------------------------+-------------------------------------------------------------+-------+-------------------
+ Computing Equipment       | Computing Equipment                                         |     0 |                27
+     Desktop Workstation   | Computing Equipment > Desktop Workstation                   |     1 |                22
+         GPU Workstation   | Computing Equipment > Desktop Workstation > GPU Workstation |     2 |                 6
+     Laptop                | Computing Equipment > Laptop                                |     1 |                 3
+     Server                | Computing Equipment > Server                                |     1 |                 2
+ Networking Equipment      | Networking Equipment                                        |     0 |                 8
+     Network Switch        | Networking Equipment > Network Switch                       |     1 |                 4
+     Wireless Access Point | Networking Equipment > Wireless Access Point                |     1 |                 2
+     Router                | Networking Equipment > Router                               |     1 |                 2
+ Electronic Instruments    | Electronic Instruments                                      |     0 |                11
+     Oscilloscope          | Electronic Instruments > Oscilloscope                       |     1 |                 4
+     Function Generator    | Electronic Instruments > Function Generator                 |     1 |                 3
+     Bench Power Supply    | Electronic Instruments > Bench Power Supply                 |     1 |                 4
+ AV Equipment              | AV Equipment                                                |     0 |                 2
+     Projector             | AV Equipment > Projector                                    |     1 |                 2
+ IoT & Embedded Kits       | IoT & Embedded Kits                                         |     0 |                 9
+     Microcontroller Board | IoT & Embedded Kits > Microcontroller Board                 |     1 |                 7
+     3D Printer            | IoT & Embedded Kits > 3D Printer                            |     1 |                 2
+(18 rows)
+
+WITH RECURSIVE timeline AS (
+    SELECT incident_id, log_seq, old_status, new_status, changed_at,
+           INTERVAL '0' AS since_previous
+    FROM   incident_status_log WHERE incident_id = 1 AND log_seq = 1
+    UNION ALL
+    SELECT l.incident_id, l.log_seq, l.old_status, l.new_status, l.changed_at,
+           l.changed_at - t.changed_at
+    FROM   incident_status_log l JOIN timeline t
+      ON   l.incident_id = t.incident_id AND l.log_seq = t.log_seq + 1
+)
+SELECT * FROM timeline ORDER BY log_seq;
+ incident_id | log_seq | old_status  | new_status  |       changed_at       | since_previous 
+-------------+---------+-------------+-------------+------------------------+----------------
+           1 |       1 |             | open        | 2024-11-24 05:51:36+00 | 00:00:00
+           1 |       2 | open        | assigned    | 2024-11-24 10:01:36+00 | 04:10:00
+           1 |       3 | assigned    | in_progress | 2024-11-24 19:21:36+00 | 09:20:00
+           1 |       4 | in_progress | resolved    | 2024-11-25 12:58:36+00 | 17:37:00
+           1 |       5 | resolved    | closed      | 2024-11-27 09:29:36+00 | 1 day 20:31:00
+(5 rows)
+
+WITH monthly_incidents AS (
+    SELECT date_trunc('month', reported_at)::date AS month, COUNT(*) AS incidents
+    FROM   incidents GROUP BY 1
+),
+monthly_cost AS (
+    SELECT date_trunc('month', m.completed_at)::date AS month,
+           SUM(pu.quantity * pu.unit_cost_at_use)     AS parts_cost
+    FROM   maintenance_records m JOIN part_usage pu ON pu.record_id = m.record_id
+    GROUP  BY 1
+)
+SELECT mi.month, mi.incidents, COALESCE(mc.parts_cost, 0) AS parts_cost
+FROM   monthly_incidents mi LEFT JOIN monthly_cost mc USING (month)
+ORDER  BY mi.month DESC
+LIMIT  12;
+   month    | incidents | parts_cost 
+------------+-----------+------------
+ 2026-11-01 |        15 |    4070.00
+ 2026-10-01 |         8 |    9760.00
+ 2026-09-01 |         8 |   16750.00
+ 2026-08-01 |         7 |   19520.00
+ 2026-07-01 |         5 |    1900.00
+ 2026-06-01 |         8 |   25820.00
+ 2026-05-01 |         9 |   16420.00
+ 2026-04-01 |         7 |   13920.00
+ 2026-03-01 |         5 |   20850.00
+ 2026-02-01 |         7 |   13350.00
+ 2026-01-01 |         8 |   13850.00
+ 2025-12-01 |        11 |   16320.00
+(12 rows)
+
+SELECT category_name, root_cause, occurrences,
+       RANK() OVER (PARTITION BY category_name ORDER BY occurrences DESC) AS rank_in_category
+FROM (
+    SELECT c.category_name, m.root_cause, COUNT(*) AS occurrences
+    FROM   maintenance_records m
+    JOIN   incidents i            ON i.incident_id = m.incident_id
+    JOIN   equipment e            ON e.equipment_id = i.equipment_id
+    JOIN   equipment_categories c ON c.category_id = e.category_id
+    GROUP  BY c.category_name, m.root_cause
+) s
+ORDER  BY category_name, rank_in_category;
+     category_name     |      root_cause       | occurrences | rank_in_category 
+-----------------------+-----------------------+-------------+------------------
+ 3D Printer            | Fabrication           |           6 |                1
+ Bench Power Supply    | Electrical            |           8 |                1
+ Desktop Workstation   | Thermal / cooling     |          13 |                1
+ Desktop Workstation   | Peripherals           |           8 |                2
+ Desktop Workstation   | Storage               |           8 |                2
+ Desktop Workstation   | Software / OS         |           6 |                4
+ Desktop Workstation   | Motherboard           |           4 |                5
+ Desktop Workstation   | Memory (RAM)          |           4 |                5
+ Desktop Workstation   | Power supply          |           3 |                7
+ Function Generator    | Electrical            |           6 |                1
+ GPU Workstation       | Memory (RAM)          |          12 |                1
+ GPU Workstation       | Thermal / cooling     |          11 |                2
+ GPU Workstation       | GPU / driver          |          11 |                2
+ GPU Workstation       | Power supply          |           6 |                4
+ Laptop                | Display               |           4 |                1
+ Laptop                | Battery               |           3 |                2
+ Microcontroller Board | Software / OS         |           8 |                1
+ Microcontroller Board | Accessories           |           6 |                2
+ Network Switch        | Network configuration |           3 |                1
+ Network Switch        | Network hardware      |           3 |                1
+ Oscilloscope          | Calibration           |           4 |                1
+ Oscilloscope          | Accessories           |           3 |                2
+ Projector             | Lamp / optics         |           4 |                1
+ Projector             | Thermal / cooling     |           4 |                1
+ Router                | Network configuration |           3 |                1
+ Server                | Storage               |           2 |                1
+ Server                | Software / OS         |           1 |                2
+ Wireless Access Point | Network configuration |           4 |                1
+(28 rows)
+
+SELECT 'Unassigned incident' AS item, 'INC-' || incident_id AS ref, title AS detail
+FROM   incidents WHERE status IN ('open','reopened')
+UNION ALL
+SELECT 'Low stock part', part_no, part_name || ' (stock ' || qty_in_stock || ')'
+FROM   spare_parts WHERE qty_in_stock <= reorder_level
+UNION ALL
+SELECT 'High-risk asset', asset_tag, equipment_name || ' (score ' || reliability_score || ')'
+FROM   v_equipment_reliability WHERE risk_level = 'High';
+        item         |     ref     |                  detail                   
+---------------------+-------------+-------------------------------------------
+ Unassigned incident | INC-155     | Repeated blue screen / OS crash
+ Unassigned incident | INC-156     | CPU fan noise and overheating
+ Unassigned incident | INC-157     | Display flicker
+ Unassigned incident | INC-158     | Lab offline - router
+ Unassigned incident | INC-159     | No power / dead system
+ Unassigned incident | INC-166     | No output signal
+ Low stock part      | SP-RAM-004  | DDR4 RAM 16GB 3200MHz (stock 3)
+ Low stock part      | SP-HDD-006  | Enterprise HDD 2TB (stock 2)
+ Low stock part      | SP-PSU-008  | ATX Power Supply 1200W Platinum (stock 1)
+ Low stock part      | SP-LAMP-014 | Projector Lamp (Epson ELPLP96) (stock 1)
+ High-risk asset     | LT-CSL-003  | Dell OptiPlex Desktop #3 (score 0.0)
+ High-risk asset     | LT-CSL-011  | Epson Projector #1 (score 21.2)
+ High-risk asset     | LT-AIML-012 | GPU Workstation #1 (score 8.0)
+ High-risk asset     | LT-AIML-014 | GPU Workstation #3 (score 0.0)
+ High-risk asset     | LT-AIML-018 | ThinkPad Laptop #1 (score 39.8)
+(15 rows)
+
+SELECT DISTINCT technician_id FROM technician_skills
+EXCEPT
+SELECT technician_id FROM assignments a JOIN incidents i ON i.incident_id = a.incident_id
+WHERE  a.is_active AND i.status IN ('assigned','in_progress','reopened');
+ technician_id 
+---------------
+             6
+             8
+(2 rows)
+
+SELECT asset_tag, specifications->>'gpu' AS gpu, (specifications->>'ram_gb')::int AS ram_gb
+FROM   equipment
+WHERE  specifications ? 'gpu' AND specifications->>'gpu' LIKE '%24GB%';
+  asset_tag  |          gpu          | ram_gb 
+-------------+-----------------------+--------
+ LT-AIML-012 | NVIDIA RTX A5000 24GB |    128
+ LT-AIML-013 | NVIDIA RTX A5000 24GB |    128
+ LT-AIML-014 | NVIDIA RTX A5000 24GB |    128
+ LT-AIML-015 | NVIDIA RTX A5000 24GB |    128
+ LT-AIML-016 | NVIDIA RTX A5000 24GB |    128
+ LT-AIML-017 | NVIDIA RTX A5000 24GB |    128
+(6 rows)
+
+SELECT asset_tag, total_failures, repeat_failures, mtbf_hours, mttr_hours,
+       reliability_score, risk_level, predicted_next_failure
+FROM   v_equipment_reliability
+ORDER  BY reliability_score ASC
+LIMIT  10;
+  asset_tag  | total_failures | repeat_failures | mtbf_hours | mttr_hours | reliability_score | risk_level | predicted_next_failure 
+-------------+----------------+-----------------+------------+------------+-------------------+------------+------------------------
+ LT-AIML-014 |             20 |              10 |     1009.0 |       40.8 |               0.0 | High       | 2026-11-29
+ LT-CSL-003  |             14 |               7 |     2896.9 |       36.1 |               0.0 | High       | 2027-02-09
+ LT-AIML-012 |             13 |               5 |     1617.0 |       35.9 |               8.0 | High       | 2026-11-03
+ LT-CSL-011  |              7 |               1 |     6716.1 |       51.3 |              21.2 | High       | 2027-08-03
+ LT-AIML-018 |              4 |               1 |     6371.1 |       54.3 |              39.8 | High       | 2027-06-12
+ LT-CSL-004  |              2 |               1 |    18874.3 |        0.0 |              50.1 | Medium     | 2029-01-06
+ LT-CSL-006  |              4 |               0 |    10199.1 |       42.2 |              50.6 | Medium     | 2028-01-10
+ LT-CSL-002  |              3 |               0 |    12958.8 |       51.0 |              51.5 | Medium     | 2028-04-20
+ LT-IOT-054  |              6 |               2 |     4239.4 |       45.1 |              51.5 | Medium     | 2027-05-05
+ LT-CSL-009  |              3 |               0 |    12622.8 |       39.5 |              52.0 | Medium     | 2028-04-20
+(10 rows)
+

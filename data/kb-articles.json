@@ -1,0 +1,93 @@
+[
+  {
+    "title": "SOP: Diagnosing thermal shutdowns on lab desktops and workstations",
+    "category": "Computing Equipment",
+    "tags": ["thermal", "overheating", "shutdown", "cooling", "desktop"],
+    "author": "Ravi Kumar",
+    "body": "Symptoms: the machine switches off by itself after running for a while, especially while compiling code, running simulations or training models. Users often describe it as 'the PC gets very hot and turns off'.\n\n1. Check the BIOS / lm-sensors CPU temperature at idle and under load (stress-ng for 5 minutes). Above 90 C means thermal shutdown is likely.\n2. Open the cabinet with ESD protection. Inspect the CPU heat sink fins and chassis fans for dust.\n3. Clean with compressed air, holding fan blades still so they do not over-spin.\n4. If the thermal paste is dry or older than 3 years, remove it with isopropyl alcohol and apply a pea-sized amount of fresh paste.\n5. Verify the CPU fan RPM in BIOS. If it is below 600 RPM or noisy, replace the fan.\n6. Re-test under load. Target: below 75 C.\n\nRecord the before/after temperatures in the maintenance record so repeat failures can be compared."
+  },
+  {
+    "title": "Troubleshooting 'no display' and beep codes on boot",
+    "category": "Computing Equipment",
+    "tags": ["no display", "beep code", "ram", "memory", "boot"],
+    "author": "Suresh Babu",
+    "body": "If the power LED is on but the monitor stays black, first check the display cable and that the monitor is set to the right input. Then listen for POST beep codes.\n\nThree short beeps (common on Dell/AMI boards) usually indicates a memory problem. Steps: power off, remove all RAM modules, clean the contacts with an eraser, re-seat one module at a time and test each slot. Run memtest86 for at least one full pass on any suspicious module. Replace modules that report errors.\n\nIf there are no beeps at all, test the PSU and check for a dead CMOS battery or a graphics card that is not seated properly."
+  },
+  {
+    "title": "Recovering a GPU that is not detected by nvidia-smi",
+    "category": "GPU Workstation",
+    "tags": ["gpu", "nvidia", "cuda", "driver", "deep learning"],
+    "author": "Suresh Babu",
+    "body": "Typical messages: 'No devices were found', 'CUDA device not found', or PyTorch returning torch.cuda.is_available() = False after a reboot.\n\n1. Run lspci | grep -i nvidia. If the card is missing, power off and re-seat the GPU, check the PCIe power connectors and the retention bracket.\n2. If lspci shows the card, the driver is the problem. A kernel update often breaks DKMS modules. Check dmesg for NVRM errors.\n3. Purge and reinstall the driver that matches the CUDA version used in the lab (apt purge 'nvidia-*', then install the pinned version).\n4. Pin the kernel version with apt-mark hold to avoid surprise upgrades during the semester.\n5. Verify with nvidia-smi and a short CUDA sample."
+  },
+  {
+    "title": "Sizing power supplies for multi-GPU deep learning workstations",
+    "category": "GPU Workstation",
+    "tags": ["psu", "power", "gpu", "reboot", "training"],
+    "author": "Prof. Mahesh Iyer",
+    "body": "Random reboots that only happen when all GPUs are busy usually mean the power supply is undersized or ageing. Sum the GPU board power (for example 230 W for an RTX A5000) plus CPU TDP plus 150 W for the rest of the system, then add 30 percent head-room for transient spikes.\n\nIf a PSU upgrade is not immediately possible, limit GPU power with nvidia-smi -pl as a temporary measure and inform users. Always use Platinum or Titanium rated units for 24x7 training loads and replace PSUs older than five years in GPU systems."
+  },
+  {
+    "title": "Replacing a projector lamp and resetting the lamp timer",
+    "category": "AV Equipment",
+    "tags": ["projector", "lamp", "dim image", "av"],
+    "author": "Kavya Gowda",
+    "body": "A dim or yellowish image normally means the lamp is close to its rated life. Check lamp hours in the projector menu. Switch the projector off and let it cool for at least 30 minutes before opening the lamp door; the lamp is extremely hot and under pressure. Remove the two screws, pull the lamp out by the handle, insert the new lamp and tighten the screws. Reset the lamp timer from the menu. Dispose of the old lamp as e-waste because it contains mercury."
+  },
+  {
+    "title": "Projector overheating: cleaning and replacing the air filter",
+    "category": "AV Equipment",
+    "tags": ["projector", "overheating", "filter", "temperature light"],
+    "author": "Kavya Gowda",
+    "body": "If the projector turns itself off after 15-30 minutes and the temperature indicator blinks, the air path is blocked. Remove the filter cover, vacuum the filter, and replace it if it is torn or still clogged. Make sure the projector vents are at least 30 cm away from walls and that ceiling mounts are not trapping hot air. Clean filters every three months in dusty labs."
+  },
+  {
+    "title": "Preventing network loops and broadcast storms in teaching labs",
+    "category": "Networking Equipment",
+    "tags": ["network", "switch", "loop", "stp", "disconnecting"],
+    "author": "Anil Shetty",
+    "body": "When the whole lab loses connectivity every few minutes, a switching loop is the first suspect. Students sometimes connect two wall ports with one patch cable during networking practicals.\n\nOn managed switches enable rapid spanning tree, enable BPDU guard and port-security on access ports, and enable storm control. Check the switch logs for MAC flapping messages to find the looped ports. Keep the core uplinks on separate VLANs from student practical ports."
+  },
+  {
+    "title": "Diagnosing dead switch ports and faulty SFP modules",
+    "category": "Networking Equipment",
+    "tags": ["switch", "ports", "sfp", "no internet"],
+    "author": "Anil Shetty",
+    "body": "If a group of ports stops working at once, check whether they share an uplink. Run show interfaces status and show interfaces transceiver detail. A transceiver with low receive power or many CRC errors should be replaced. Test patch cables with a cable tester before replacing hardware, and label cables after the fix."
+  },
+  {
+    "title": "Oscilloscope probe compensation and channel checks",
+    "category": "Electronic Instruments",
+    "tags": ["oscilloscope", "probe", "trace", "calibration"],
+    "author": "Priya Nair",
+    "body": "Before declaring a channel faulty, connect the probe to the built-in calibration output (1 kHz square wave). If the square wave has rounded or overshooting edges, adjust the probe compensation screw. If there is no trace at all, swap the probe with a known good one; damaged probe tips are far more common than failed input channels. Run the instrument self-calibration after the scope has warmed up for 20 minutes."
+  },
+  {
+    "title": "Clearing a clogged 3D printer nozzle",
+    "category": "IoT & Embedded Kits",
+    "tags": ["3d printer", "nozzle", "filament", "extrusion"],
+    "author": "Mohammed Irfan",
+    "body": "Signs: filament does not come out, clicking extruder, or prints that fail after the first layer. Heat the nozzle to 240 C, perform a cold pull with a short piece of filament, and repeat until the pulled tip is clean. If it remains blocked, replace the 0.4 mm nozzle (tighten while hot). Re-level the bed and print a calibration cube afterwards."
+  },
+  {
+    "title": "Raspberry Pi will not boot: SD card re-flash procedure",
+    "category": "IoT & Embedded Kits",
+    "tags": ["raspberry pi", "sd card", "boot", "embedded"],
+    "author": "Mohammed Irfan",
+    "body": "A Pi that shows only the red power LED and no green activity LED is usually not reading its SD card. Re-flash the lab image using Raspberry Pi Imager, enable SSH in the advanced settings, and use a good quality 5V 3A supply. Ask students to shut down with sudo poweroff instead of pulling the plug; unsafe power off is the main cause of corrupted cards."
+  },
+  {
+    "title": "RAID array degraded: hot-swap and rebuild procedure for compute servers",
+    "category": "Server",
+    "tags": ["raid", "server", "disk failure", "storage"],
+    "author": "Suresh Babu",
+    "body": "When the RAID controller reports a degraded array, identify the failed slot from the controller utility (storcli or the BMC web page) and turn on the locate LED. Confirm a recent backup exists. Hot-swap the failed drive with an identical or larger enterprise drive; the rebuild should start automatically. Monitor the rebuild percentage and avoid heavy jobs during the rebuild. Log the drive serial number in the maintenance record for warranty claims."
+  },
+  {
+    "title": "ESD safety checklist for opening lab equipment",
+    "category": "General",
+    "tags": ["safety", "esd", "general"],
+    "author": "Dr. Sunita Rao",
+    "body": "Always disconnect mains power and wait for capacitors to discharge. Wear an anti-static wrist strap connected to the chassis, work on an ESD mat, and hold boards by their edges. Never open power supply units or CRT/projector lamp housings while hot. Report any burnt smell, swollen capacitors or exposed wiring immediately and tag the equipment as 'faulty - do not use'."
+  }
+]

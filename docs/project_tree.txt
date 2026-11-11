@@ -1,0 +1,165 @@
+labtrace/
+├── app/
+│   ├── (app)/
+│   │   ├── analytics/
+│   │   │   ├── page.js
+│   │   │   └── ReindexButton.js
+│   │   ├── dashboard/
+│   │   │   └── page.js
+│   │   ├── equipment/
+│   │   │   ├── [id]/
+│   │   │   │   └── page.js
+│   │   │   ├── new/
+│   │   │   │   └── page.js
+│   │   │   ├── EquipmentForm.js
+│   │   │   └── page.js
+│   │   ├── incidents/
+│   │   │   ├── [id]/
+│   │   │   │   ├── Actions.js
+│   │   │   │   └── page.js
+│   │   │   ├── new/
+│   │   │   │   ├── page.js
+│   │   │   │   └── ReportForm.js
+│   │   │   └── page.js
+│   │   ├── knowledge/
+│   │   │   ├── [id]/
+│   │   │   │   └── page.js
+│   │   │   ├── new/
+│   │   │   │   └── page.js
+│   │   │   ├── ArticleForm.js
+│   │   │   ├── KnowledgeSearch.js
+│   │   │   └── page.js
+│   │   ├── labs/
+│   │   │   ├── LabForm.js
+│   │   │   └── page.js
+│   │   ├── parts/
+│   │   │   ├── page.js
+│   │   │   └── PartActions.js
+│   │   ├── users/
+│   │   │   ├── page.js
+│   │   │   └── UserActions.js
+│   │   └── layout.js
+│   ├── (auth)/
+│   │   ├── login/
+│   │   │   └── page.js
+│   │   ├── register/
+│   │   │   └── page.js
+│   │   └── AuthHero.js
+│   ├── api/
+│   │   ├── auth/
+│   │   │   ├── login/
+│   │   │   │   └── route.js
+│   │   │   ├── logout/
+│   │   │   │   └── route.js
+│   │   │   └── register/
+│   │   │       └── route.js
+│   │   ├── equipment/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.js
+│   │   │   └── route.js
+│   │   ├── incidents/
+│   │   │   ├── [id]/
+│   │   │   │   ├── assign/
+│   │   │   │   │   └── route.js
+│   │   │   │   ├── maintenance/
+│   │   │   │   │   └── route.js
+│   │   │   │   ├── notes/
+│   │   │   │   │   └── route.js
+│   │   │   │   ├── status/
+│   │   │   │   │   └── route.js
+│   │   │   │   ├── tags/
+│   │   │   │   │   └── route.js
+│   │   │   │   └── route.js
+│   │   │   └── route.js
+│   │   ├── knowledge/
+│   │   │   ├── articles/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── route.js
+│   │   │   │   └── route.js
+│   │   │   ├── incidents/
+│   │   │   │   └── [id]/
+│   │   │   │       └── route.js
+│   │   │   ├── reindex/
+│   │   │   │   └── route.js
+│   │   │   ├── search/
+│   │   │   │   └── route.js
+│   │   │   └── similar/
+│   │   │       └── route.js
+│   │   ├── labs/
+│   │   │   └── route.js
+│   │   ├── parts/
+│   │   │   ├── [id]/
+│   │   │   │   └── restock/
+│   │   │   │       └── route.js
+│   │   │   └── route.js
+│   │   └── users/
+│   │       ├── [id]/
+│   │       │   └── route.js
+│   │       └── route.js
+│   ├── globals.css
+│   ├── layout.js
+│   └── not-found.js
+├── components/
+│   ├── Badges.js
+│   ├── BarChart.js
+│   ├── format.js
+│   ├── LogoutButton.js
+│   ├── NavLinks.js
+│   ├── SimilarList.js
+│   └── useApi.js
+├── data/
+│   └── kb-articles.json
+├── docs/
+│   ├── code/  (6 images)
+│   ├── diagrams/
+│   │   ├── er_diagram.dot
+│   │   ├── er_diagram.png
+│   │   ├── schema_diagram.dot
+│   │   └── schema_diagram.png
+│   ├── results/  (17 images)
+│   ├── screenshots/  (20 images)
+│   └── smoke_test_results.log
+├── lib/
+│   ├── auth.js
+│   ├── db.js
+│   ├── devstore.js
+│   ├── embeddings.js
+│   ├── kbsync.js
+│   ├── knowledge.js
+│   ├── mongo.js
+│   ├── queries.js
+│   ├── session.js
+│   └── validate.js
+├── nosql/
+│   ├── 01_create_collections.js
+│   ├── 02_vector_index.js
+│   └── 03_crud_and_vector_queries.js
+├── scripts/
+│   ├── code_screens.py
+│   ├── generate_seed.py
+│   ├── kb-sync.mjs
+│   ├── result_screens.py
+│   ├── screenshots.py
+│   ├── setup_db.sh
+│   └── smoke-test.mjs
+├── sql/
+│   ├── logs/
+│   │   ├── 06_queries.log
+│   │   ├── 07_dml_demo.log
+│   │   └── database_objects.log
+│   ├── 01_schema.sql
+│   ├── 02_functions_triggers.sql
+│   ├── 03_views.sql
+│   ├── 04_security.sql
+│   ├── 05_seed.sql
+│   ├── 06_queries.sql
+│   └── 07_dml_demo.sql
+├── .env.example
+├── .gitignore
+├── docker-compose.yml
+├── jsconfig.json
+├── next.config.mjs
+├── package-lock.json
+├── package.json
+├── proxy.js
+└── README.md

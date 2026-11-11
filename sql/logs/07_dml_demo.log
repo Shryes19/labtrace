@@ -1,0 +1,154 @@
+SET
+================ 1. STUDENT reports an incident (INSERT + trigger) ================
+BEGIN
+SET
+ set_config 
+------------
+ 9
+(1 row)
+
+ incident_id | status |          reported_at          
+-------------+--------+-------------------------------
+         170 | open   | 2026-11-11 20:32:04.596319+00
+(1 row)
+
+INSERT 0 1
+ log_seq | old_status | new_status |      remarks      
+---------+------------+------------+-------------------
+       1 |            | open       | Incident reported
+(1 row)
+
+ asset_tag  | status 
+------------+--------
+ LT-CSL-005 | faulty
+(1 row)
+
+--- RLS: the student only sees his own incidents
+ my_incidents 
+--------------
+           11
+(1 row)
+
+--- RLS: reporting on behalf of another student is rejected
+SAVEPOINT
+psql:sql/07_dml_demo.sql:26: ERROR:  new row violates row-level security policy for table "incidents"
+ROLLBACK
+--- Column privilege: password_hash is not readable
+SAVEPOINT
+psql:sql/07_dml_demo.sql:30: ERROR:  permission denied for table users
+ROLLBACK
+ROLLBACK
+================ 2. ADMIN assigns automatically (PROCEDURE + recursive CTE) ================
+BEGIN
+SET
+ set_config 
+------------
+ 1
+(1 row)
+
+INSERT 0 1
+ p_technician_id 
+-----------------
+               4
+(1 row)
+
+ incident_id | technician  |  status  
+-------------+-------------+----------
+         172 | Suresh Babu | assigned
+(1 row)
+
+ log_seq | old_status | new_status | changed_by 
+---------+------------+------------+------------
+       1 |            | open       |          9
+       2 | open       | assigned   |          1
+(2 rows)
+
+ROLLBACK
+================ 3. TECHNICIAN completes job (PROCEDURE + stock trigger) ================
+BEGIN
+SET
+ set_config 
+------------
+ 1
+(1 row)
+
+INSERT 0 1
+ p_technician_id 
+-----------------
+               3
+(1 row)
+
+SET
+ set_config 
+------------
+ 3
+(1 row)
+
+  part_no   | qty_in_stock 
+------------+--------------
+ SP-FAN-002 |            6
+ SP-TP-001  |           12
+(2 rows)
+
+ p_record_id 
+-------------
+         159
+(1 row)
+
+  part_no   | qty_in_stock 
+------------+--------------
+ SP-TP-001  |           11
+ SP-FAN-002 |            5
+(2 rows)
+
+ record_id | labour_hours | outcome 
+-----------+--------------+---------
+       159 |         1.50 | fixed
+(1 row)
+
+  status  | has_resolved_time 
+----------+-------------------
+ resolved | t
+(1 row)
+
+--- Trigger blocks using more parts than available
+SAVEPOINT
+psql:sql/07_dml_demo.sql:70: ERROR:  Insufficient stock for "ATX Power Supply 1200W Platinum": available 1, requested 99
+CONTEXT:  PL/pgSQL function trg_fn_part_usage_stock() line 14 at RAISE
+ROLLBACK
+--- Technician may not close an incident (RLS WITH CHECK)
+SAVEPOINT
+psql:sql/07_dml_demo.sql:74: ERROR:  new row violates row-level security policy for table "incidents"
+ROLLBACK
+--- Invalid status jump is rejected by trigger
+SET
+SAVEPOINT
+psql:sql/07_dml_demo.sql:79: ERROR:  Invalid incident status change: resolved -> open
+CONTEXT:  PL/pgSQL function trg_fn_incident_validate_status() line 12 at RAISE
+ROLLBACK
+ROLLBACK
+================ 4. ADMIN DML on master data ================
+BEGIN
+SET
+ set_config 
+------------
+ 1
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+UPDATE 3
+CALL
+UPDATE 1
+DELETE 1
+--- Foreign key protects equipment that has incidents
+SAVEPOINT
+psql:sql/07_dml_demo.sql:99: ERROR:  update or delete on table "equipment" violates foreign key constraint "incidents_equipment_id_fkey" on table "incidents"
+DETAIL:  Key (equipment_id)=(3) is still referenced from table "incidents".
+ROLLBACK
+--- CHECK constraint protects data quality
+SAVEPOINT
+psql:sql/07_dml_demo.sql:104: ERROR:  new row for relation "spare_parts" violates check constraint "chk_sp_qty"
+DETAIL:  Failing row contains (23, BAD-1, Negative stock part, Test, 10.00, -5, 2).
+ROLLBACK
+ROLLBACK

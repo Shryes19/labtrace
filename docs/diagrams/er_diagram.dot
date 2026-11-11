@@ -1,0 +1,58 @@
+graph ER {
+  graph [layout=neato, overlap=false, splines=true, sep="+12", bgcolor=white, fontname="Helvetica", pad=0.3];
+  node  [fontname="Helvetica", fontsize=11];
+  edge  [fontname="Helvetica", fontsize=10, len=1.2];
+
+  // ---------- entities ----------
+  node [shape=box, style=filled, fillcolor="#dbe9fb", color="#1c5cab", penwidth=1.5];
+  USER; LAB; EQUIPMENT; CATEGORY [label="EQUIPMENT_CATEGORY"]; INCIDENT; MREC [label="MAINTENANCE_RECORD"]; PART [label="SPARE_PART"];
+  LOG [label="INCIDENT_STATUS_LOG", peripheries=2];   // weak entity
+
+  // ---------- relationships ----------
+  node [shape=diamond, style=filled, fillcolor="#fff3d6", color="#9a6400", penwidth=1.2, fontsize=10];
+  r_incharge [label="IN_CHARGE_OF"]; r_houses [label="HOUSES"]; r_belongs [label="BELONGS_TO"]; r_sub [label="SUBCATEGORY_OF"];
+  r_reports [label="REPORTS"]; r_on [label="FAILURE_OF"]; r_assign [label="ASSIGNED_TO"]; r_has [label="HAS_LOG", peripheries=2];
+  r_repair [label="REPAIRED_BY"]; r_performs [label="PERFORMS"]; r_uses [label="USES"]; r_skill [label="SKILLED_IN"]; r_changed [label="CHANGED_BY"];
+
+  // ---------- attributes ----------
+  node [shape=ellipse, style=filled, fillcolor="#f7f7f7", color="#777777", penwidth=1, fontsize=9.5];
+  u_id [label=<<u>user_id</u>>]; u_inst [label="institution_id"]; u_name [label="full_name"]; u_email [label="email"]; u_role [label="role"];
+  u_phone [label="phone_no", peripheries=2];   // multivalued
+  l_id [label=<<u>lab_id</u>>]; l_code [label="lab_code"]; l_name [label="lab_name"]; l_cap [label="capacity"];
+  l_loc [label="location"]; l_bld [label="building"]; l_floor [label="floor_no"]; l_room [label="room_no"];
+  e_id [label=<<u>equipment_id</u>>]; e_tag [label="asset_tag"]; e_name [label="equipment_name"]; e_status [label="status"]; e_pd [label="purchase_date"]; e_cost [label="purchase_cost"]; e_spec [label="specifications (JSON)"];
+  e_age [label="age_years", style="dashed,filled"];   // derived
+  c_id [label=<<u>category_id</u>>]; c_name [label="category_name"]; c_life [label="expected_life_years"];
+  i_id [label=<<u>incident_id</u>>]; i_title [label="title"]; i_desc [label="description"]; i_sev [label="severity"]; i_status [label="status"]; i_rep [label="reported_at"]; i_res [label="resolved_at"];
+  g_seq [label=<<u>log_seq</u>>, style="dashed,filled"]; g_old [label="old_status"]; g_new [label="new_status"]; g_at [label="changed_at"];
+  m_id [label=<<u>record_id</u>>]; m_diag [label="diagnosis"]; m_root [label="root_cause"]; m_act [label="action_taken"]; m_out [label="outcome"];
+  m_hours [label="labour_hours", style="dashed,filled"];   // derived
+  p_id [label=<<u>part_id</u>>]; p_no [label="part_no"]; p_name [label="part_name"]; p_cost [label="unit_cost"]; p_qty [label="qty_in_stock"];
+  a_at [label="assigned_at"]; a_active [label="is_active"]; pu_qty [label="quantity"]; pu_cost [label="unit_cost_at_use"]; s_prof [label="proficiency"];
+
+  USER -- {u_id u_inst u_name u_email u_role u_phone};
+  LAB -- {l_id l_code l_name l_cap l_loc}; l_loc -- {l_bld l_floor l_room};
+  EQUIPMENT -- {e_id e_tag e_name e_status e_pd e_cost e_spec e_age};
+  CATEGORY -- {c_id c_name c_life};
+  INCIDENT -- {i_id i_title i_desc i_sev i_status i_rep i_res};
+  LOG -- {g_seq g_old g_new g_at};
+  MREC -- {m_id m_diag m_root m_act m_out m_hours};
+  PART -- {p_id p_no p_name p_cost p_qty};
+  r_assign -- {a_at a_active}; r_uses -- {pu_qty pu_cost}; r_skill -- s_prof;
+
+  // ---------- relationship edges (cardinality labels) ----------
+  edge [color="#333333"];
+  USER -- r_incharge [label="1"]; r_incharge -- LAB [label="N"];
+  LAB -- r_houses [label="1"]; r_houses -- EQUIPMENT [label="N", penwidth=2.5];
+  EQUIPMENT -- r_belongs [label="N", penwidth=2.5]; r_belongs -- CATEGORY [label="1"];
+  CATEGORY -- r_sub [label="parent 1"]; r_sub -- CATEGORY [label="child N"];
+  USER -- r_reports [label="1"]; r_reports -- INCIDENT [label="N", penwidth=2.5];
+  INCIDENT -- r_on [label="N", penwidth=2.5]; r_on -- EQUIPMENT [label="1"];
+  INCIDENT -- r_assign [label="M"]; r_assign -- USER [label="N (technician)"];
+  INCIDENT -- r_has [label="1"]; r_has -- LOG [label="N", penwidth=2.5, color="#333333:white:#333333"];
+  LOG -- r_changed [label="N"]; r_changed -- USER [label="1"];
+  INCIDENT -- r_repair [label="1"]; r_repair -- MREC [label="N", penwidth=2.5];
+  USER -- r_performs [label="1 (technician)"]; r_performs -- MREC [label="N", penwidth=2.5];
+  MREC -- r_uses [label="M"]; r_uses -- PART [label="N"];
+  USER -- r_skill [label="M (technician)"]; r_skill -- CATEGORY [label="N"];
+}

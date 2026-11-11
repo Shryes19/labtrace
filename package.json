@@ -1,0 +1,31 @@
+{
+  "name": "labtrace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "LabTrace - Intelligent Laboratory Asset Failure Tracking, Maintenance Management and Predictive Reliability System",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:setup": "bash scripts/setup_db.sh",
+    "db:seed:generate": "python3 scripts/generate_seed.py",
+    "kb:sync": "node --env-file-if-exists=.env.local scripts/kb-sync.mjs",
+    "test:smoke": "node --env-file-if-exists=.env.local scripts/smoke-test.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.17",
+    "mongodb": "^7.8.0",
+    "next": "^16.4.6",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "optionalDependencies": {
+    "@huggingface/transformers": "^4.3.2"
+  },
+  "engines": {
+    "node": ">=20.9"
+  }
+}
