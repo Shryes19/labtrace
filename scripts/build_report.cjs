@@ -174,8 +174,8 @@ children.push(H2('2.2 Non-Functional Requirements'));
 children.push(H2('2.3 Technology Stack and Justification'));
 children.push(table(['Layer', 'Technology', 'Why it fits LabTrace'], [
   ['Relational database', 'PostgreSQL 16', 'Equipment, incidents, assignments, repairs and parts are highly related and need strict integrity. PostgreSQL offers rich constraints, PL/pgSQL triggers, procedures and functions, recursive CTEs (category hierarchy), JSONB (variable equipment specifications), generated columns, and - importantly - database roles with column privileges and Row-Level Security, so role-based access is enforced by the database itself.'],
-  ['NoSQL / vector database', 'MongoDB (Atlas Local) + vector search', 'Failure narratives, diagnoses, notes, tags and articles are free text of varying shape that grows over time (e.g. an array of discussion notes). A document model stores each incident\'s knowledge as one flexible document with embedded equipment details. Each document also stores a 384-dimension embedding; MongoDB $vectorSearch (or exact cosine k-NN) finds semantically similar failures.'],
-  ['Embeddings', 'all-MiniLM-L6-v2 (sentence-transformer) via @huggingface/transformers, with an offline fallback embedder', 'Converts any description into a vector so that "gets too hot and turns off" and "thermal shutdown" end up close together. Runs locally - no paid API or internet required after the first download.'],
+  ['NoSQL / vector database', 'MongoDB 7 (Docker) + vector search', 'Failure narratives, diagnoses, notes, tags and articles are free text of varying shape that grows over time (e.g. an array of discussion notes). A document model stores each incident\'s knowledge as one flexible document with embedded equipment details. Each document also stores a 384-dimension embedding; exact cosine k-NN over these vectors (or MongoDB Atlas $vectorSearch when available) finds semantically similar failures.'],
+  ['Embeddings', 'Built-in offline concept embedder (default); optional all-MiniLM-L6-v2 sentence-transformer', 'Converts any description into a vector so that "gets too hot and turns off" and "thermal shutdown" end up close together. Runs fully locally with no paid API; the neural model can be switched on with one setting.'],
   ['Web framework', 'Next.js 16 (App Router), React 19', 'One project contains UI pages, server components that query the database directly, and REST API route handlers. The proxy (middleware) protects routes before pages render.'],
   ['Authentication', 'bcryptjs + jose (JWT), httpOnly cookie', 'Simple, standard and secure session handling without an external service.'],
   ['Database drivers', 'node-postgres (pg), MongoDB Node driver', 'Official, parameterised queries (protection against SQL injection).'],
@@ -186,7 +186,7 @@ children.push(H2('2.4 Justification for the Choice of NoSQL Database'));
 [
   'The heart of the problem (Section 3.3 / 3.4 of the problem description) is **inconsistent natural-language descriptions**. Answering "has this happened before?" requires similarity by meaning, which needs vectors and nearest-neighbour search - not exact matching on relational columns.',
   'Incident knowledge is **semi-structured and evolving**: a report starts with only a description, later gains a diagnosis and resolution, collects any number of notes and tags, and may be re-embedded with a better model. A schema-flexible document fits this naturally while the authoritative, transactional facts stay in PostgreSQL.',
-  'MongoDB keeps the **text and its vector in the same document**, so a single query returns the matching incident together with its fix. Atlas Local runs the same $vectorSearch locally that Atlas uses in the cloud.',
+  'MongoDB keeps the **text and its vector in the same document**, so a single query returns the matching incident together with its fix. The same data works with MongoDB Atlas $vectorSearch (index script included) when the project is moved to the cloud.',
   'Separating the two stores applies **polyglot persistence**: PostgreSQL for integrity and analytics, MongoDB for flexible knowledge and similarity search. The incident_id links both.',
 ].forEach((b) => children.push(bullet(b)));
 
@@ -343,7 +343,7 @@ children.push(...code(rd('nosql/03_crud_and_vector_queries.js'), 13));
 children.push(H2('7.5 How Semantic Search Works'));
 [
   'When an incident is reported or repaired, the text (title + description + diagnosis + resolution + category) is converted into a 384-number vector by the all-MiniLM-L6-v2 sentence-transformer and stored with the document (field embedding, plus embedding_model).',
-  'A search query is embedded the same way. With Atlas / Atlas Local, $vectorSearch returns the nearest documents using the vector index; otherwise the app computes exact cosine similarity over the stored vectors (k-NN).',
+  'A search query is embedded the same way. The app computes exact cosine similarity between the query vector and the stored vectors (k-NN) and ranks the results; on MongoDB Atlas the same search can run inside the database with $vectorSearch.',
   'Results are filtered (only resolved incidents, same embedding model, excluding the current incident) and near-duplicates are removed. Students receive problem summaries only; staff also see diagnosis and fix.',
   'Comparison in the app: the query "computer gets too hot and turns off" returns 0 keyword matches but the top semantic results are earlier thermal-shutdown incidents with their fixes (see Figure in Section 10).',
 ].forEach((b) => children.push(bullet(b)));
@@ -399,7 +399,7 @@ children.push(H2('11.1 Testing'));
 children.push(P('sql/07_dml_demo.sql tests the database rules directly (Section 6.2). scripts/smoke-test.mjs is an automated end-to-end test that drives the REST API as the three roles and checks both the workflow and the access rules. Result of the final run:'));
 children.push(...code(rd('docs/smoke_test_results.log'), 14));
 children.push(H2('11.2 GitHub Repository'));
-children.push(P('Repository: **[GitHub repository link]** - contains the complete source code, SQL and NoSQL scripts, diagrams, screenshots, this report and a README with setup instructions (docker compose, scripts/setup_db.sh, npm run kb:sync, npm run dev).'));
+children.push(P('Repository: **https://github.com/Shryes19/labtrace** - contains the complete source code, SQL and NoSQL scripts, diagrams, screenshots, this report and a README with step-by-step setup instructions (docker compose, database scripts, npm run kb:sync, npm run dev).'));
 children.push(H2('11.3 Individual Contribution'));
 children.push(table(['SRN', 'Name', 'Contribution'], [
   ['PES1UG24AM272', 'Shryes', '[describe your part, e.g. database design, PostgreSQL triggers / procedures / RLS, vector search]'],

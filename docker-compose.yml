@@ -1,3 +1,6 @@
+# Local databases for LabTrace:  docker compose up -d
+#  - PostgreSQL on host port 5433 (5433 avoids a clash with a locally installed PostgreSQL)
+#  - MongoDB 7 with a small cache (0.25 GB) so it also runs on low-memory laptops
 services:
   postgres:
     image: postgres:16

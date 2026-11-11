@@ -1,5 +1,6 @@
 // =====================================================================
-// LabTrace | Vector search index (MongoDB Atlas or Atlas Local docker image)
+// LabTrace | Vector search index - OPTIONAL, needs MongoDB Atlas or the
+//            mongodb/mongodb-atlas-local image (plain MongoDB 7 uses the app's exact cosine k-NN instead)
 // Run AFTER `npm run kb:sync` has inserted documents:
 //   mongosh "mongodb://localhost:27017/?directConnection=true" nosql/02_vector_index.js
 // then set MONGODB_VECTOR_SEARCH=atlas in .env.local

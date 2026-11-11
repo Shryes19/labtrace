@@ -11,7 +11,7 @@ technicians find *similar past failures by meaning*, even when they are describe
 | Layer | Technology | Why |
 |---|---|---|
 | Relational DB | **PostgreSQL 16** | strong constraints, triggers, procedures, recursive CTEs, JSONB, roles and **row-level security** |
-| Document / vector DB | **MongoDB** (Atlas Local in Docker) | flexible failure narratives, notes and articles + 384-d embeddings and `$vectorSearch` |
+| Document / vector DB | **MongoDB 7** (Docker) | flexible failure narratives, notes and articles + 384-d embeddings and `$vectorSearch` |
 | Embeddings | all-MiniLM-L6-v2 via `@huggingface/transformers` (offline fallback built in) | turns text into vectors for semantic search |
 | Web app | **Next.js 16** (App Router) + React 19 | pages, API route handlers and server components in one project |
 | Auth | bcrypt + signed JWT in an httpOnly cookie | front-end route guard (`proxy.js`) + API checks + database roles |
@@ -53,50 +53,58 @@ labtrace/
 ├── scripts/                  setup_db.sh, generate_seed.py, kb-sync.mjs, smoke-test.mjs, screenshots.py
 ├── data/kb-articles.json     seed articles
 ├── docs/                     project report (.docx), ER & schema diagrams, screenshots, result images, test log
-└── docker-compose.yml        PostgreSQL + MongoDB Atlas Local
+└── docker-compose.yml        PostgreSQL 16 (port 5433) + MongoDB 7
 ```
 
-## Running it locally
+## Running it locally (Windows / PowerShell)
 
-Requirements: Node.js 20.9+, Docker (or a local PostgreSQL 16 + MongoDB), Python 3 only if you want to regenerate seed data.
+Requirements: Docker Desktop, Node.js 20.9+ and Git. Tested on a 4 GB Windows laptop.
 
 1. **Start the databases**
-   ```bash
+   ```powershell
    docker compose up -d
    ```
+   PostgreSQL listens on port **5433**, MongoDB on **27017**.
 2. **Create the PostgreSQL database** (schema, functions, triggers, views, roles/RLS, sample data)
-   ```bash
-   PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres ./scripts/setup_db.sh
+   ```powershell
+   docker compose cp sql postgres:/sql
+   docker compose exec postgres psql -U postgres -c "CREATE DATABASE labtrace"
+   foreach ($f in "01_schema","02_functions_triggers","03_views","04_security","05_seed") {
+     docker compose exec postgres psql -U postgres -d labtrace -v ON_ERROR_STOP=1 -q -f "/sql/$f.sql"
+   }
+   docker compose exec postgres psql -U postgres -d labtrace -c "ALTER ROLE labtrace_app SET search_path = labtrace, public"
    ```
-   If `psql` is not installed, the script uses the Docker container automatically. On Windows without bash
-   (e.g. PowerShell), create the database `labtrace` and run the files `sql/01_…` to `sql/05_…` in order with
-   `psql -U postgres -d labtrace -f <file>`.
+   (Linux / macOS / Git Bash: `./scripts/setup_db.sh` does the same.)
 3. **Install and configure**
-   ```bash
+   ```powershell
    npm install
-   cp .env.example .env.local
+   Copy-Item .env.example .env.local     # then put a long random value in AUTH_SECRET
    ```
-4. **Build the MongoDB knowledge base** (embeds every incident + seeds articles)
-   ```bash
-   mongosh "mongodb://localhost:27017/?directConnection=true" nosql/01_create_collections.js   # optional: validators + indexes
+4. **Build the MongoDB knowledge base** (embeds every incident and seeds the articles)
+   ```powershell
    npm run kb:sync
-   mongosh "mongodb://localhost:27017/?directConnection=true" nosql/02_vector_index.js         # optional: Atlas vector index
    ```
-   After creating the vector index you can set `MONGODB_VECTOR_SEARCH=atlas` in `.env.local`. With `app` the
-   app computes exact cosine similarity itself, which works on any MongoDB.
 5. **Run**
-   ```bash
-   npm run dev        # http://localhost:3000
-   npm run test:smoke # in a second terminal - 29 end-to-end API checks
+   ```powershell
+   npm run dev          # http://localhost:3000
+   npm run test:smoke   # in a second terminal: 29 end-to-end API checks
    ```
+
+**Low-memory laptops:** cap Docker's memory with a `%USERPROFILE%\.wslconfig` file containing
+`[wsl2]`, `memory=1GB`, `swap=2GB`, then run `wsl --shutdown` and restart Docker Desktop. If `npm install` runs
+out of memory, use `npm install --omit=optional` followed by
+`npm install @next/swc-win32-x64-msvc@16.4.6 --no-save` (the Next.js compiler for Windows is an optional package).
+
+**Optional extras:**
+- `nosql/01_create_collections.js` adds JSON-schema validators and indexes (run with `mongosh`).
+- `EMBEDDING_PROVIDER=auto` uses the all-MiniLM-L6-v2 neural model (needs the optional
+  `@huggingface/transformers` package, ~90 MB model download). Re-run `npm run kb:sync` after switching.
+- On MongoDB Atlas or the `mongodb/mongodb-atlas-local` image, run `nosql/02_vector_index.js` and set
+  `MONGODB_VECTOR_SEARCH=atlas` to use `$vectorSearch`.
+- No MongoDB at all? `MONGODB_URI=file:./.data/kb` uses a small JSON-file store with the same API (development only).
 
 Demo accounts (password `Password@123`): `admin@labtrace.edu`, `tech@labtrace.edu`, `student@labtrace.edu`.
 
-**Embeddings:** with `EMBEDDING_PROVIDER=auto`, the MiniLM model is downloaded from Hugging Face the first time
-(~90 MB) and cached. If that is not possible, a built-in offline embedder is used automatically. Every stored
-vector records which model produced it; run `npm run kb:sync` again after switching.
-
-**No MongoDB?** Set `MONGODB_URI=file:./.data/kb` to use a small JSON-file store with the same API (development only).
 
 ## Database highlights
 
