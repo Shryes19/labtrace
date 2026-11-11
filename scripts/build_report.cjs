@@ -101,15 +101,15 @@ children.push(
 );
 children.push(new Table({
   width: { size: 6000, type: WidthType.DXA }, columnWidths: [3000, 3000], alignment: AlignmentType.CENTER,
-  rows: [['PES1UG24AM272', 'Shryes'], ['[SRN 2]', '[Name 2]']].map((r) => new TableRow({
+  rows: [['PES1UG24AM272', 'Shryes M'], ['PES1UG24AM261', 'Shesanth K']].map((r) => new TableRow({
     children: r.map((t) => new TableCell({ borders, width: { size: 3000, type: WidthType.DXA }, margins: { top: 80, bottom: 80, left: 120, right: 120 },
       children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: t, font: FONT, size: 24 })] })] })),
   })),
 }));
 children.push(
   new Paragraph({ spacing: { after: 400 }, children: [] }),
-  center('Class of Prof. [NAME]', 24, true, true),
-  center('[Lab Faculty]', 24, true, true),
+  center('Class of Prof. Junaid Rasool', 24, true, true),
+  center('Lab Faculty: Prof. Junaid Rasool', 24, true, true),
   pageBreak(),
 );
 
@@ -402,11 +402,12 @@ children.push(H2('11.2 GitHub Repository'));
 children.push(P('Repository: **https://github.com/Shryes19/labtrace** - contains the complete source code, SQL and NoSQL scripts, diagrams, screenshots, this report and a README with step-by-step setup instructions (docker compose, database scripts, npm run kb:sync, npm run dev).'));
 children.push(H2('11.3 Individual Contribution'));
 children.push(table(['SRN', 'Name', 'Contribution'], [
-  ['PES1UG24AM272', 'Shryes', '[describe your part, e.g. database design, PostgreSQL triggers / procedures / RLS, vector search]'],
-  ['[SRN 2]', '[Name 2]', '[describe your part, e.g. Next.js pages, API routes, testing, documentation]'],
+  ['PES1UG24AM272', 'Shryes M', 'ER model and relational schema design; PostgreSQL DDL with constraints; triggers, stored procedures, functions and views; role-based access control with database roles and row-level security; sample data generator; analytical SQL queries (join, nested, correlated, recursive CTE)'],
+  ['PES1UG24AM261', 'Shesanth K', 'MongoDB knowledge base and vector (semantic) search; Next.js pages and API routes with PostgreSQL / MongoDB integration; authentication (bcrypt, JWT, route proxy); reliability analytics dashboard; testing (DML demo and automated end-to-end test), screenshots and documentation'],
 ], [1900, 1800, 5326]));
 
 // ---------- 12 Rubrics ----------
+children.push(pageBreak());
 children.push(H1('12. Evaluation Rubrics - Completion Status'));
 children.push(table(['#', 'Criteria', 'Distribution', 'Status / where implemented'], [
   ['1', 'Database Design', 'ER diagram (2), relational schema with keys, relationships and constraints (3)', 'Completed - Sections 3 and 4; weak entity, composite / multivalued / derived attributes, recursive and M:N relationships'],
@@ -420,7 +421,7 @@ children.push(table(['#', 'Criteria', 'Distribution', 'Status / where implemente
 
 // ---------------------------------------------------------------- document
 const doc = new Document({
-  creator: 'LabTrace team', title: 'LabTrace - DBMS Project Report',
+  creator: 'Shryes M, Shesanth K', title: 'LabTrace - DBMS Project Report',
   styles: {
     default: { document: { run: { font: FONT, size: 24 } } },
     paragraphStyles: [
@@ -445,7 +446,7 @@ const doc = new Document({
     footers: { default: new Footer({ children: [new Paragraph({
       tabStops: [{ type: TabStopType.CENTER, position: CONTENT_W / 2 }, { type: TabStopType.RIGHT, position: CONTENT_W }],
       border: { top: { style: BorderStyle.SINGLE, size: 4, color: '999999', space: 2 } },
-      children: [new TextRun({ text: 'Aug-Dec 2026', font: FONT, size: 18 }), new TextRun({ text: '\tLabTrace', font: FONT, size: 18 }),
+      children: [new TextRun({ text: 'Aug-Dec 2026', font: FONT, size: 18 }), new TextRun({ text: '\tShryes M - Shesanth K', font: FONT, size: 18 }),
         new TextRun({ children: ['\tPage ', PageNumber.CURRENT, ' / ', PageNumber.TOTAL_PAGES], font: FONT, size: 18 })] })] }) },
     children,
   }],
