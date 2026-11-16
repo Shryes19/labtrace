@@ -108,7 +108,7 @@ Demo accounts (password `Password@123`): `admin@labtrace.edu`, `tech@labtrace.ed
 
 ## Database highlights
 
-- 11 tables, CHECK / UNIQUE / FK constraints, a stored generated column (`labour_hours`), JSONB specs, partial unique index.
+- 12 tables, CHECK / UNIQUE / FK constraints, a stored generated column (`labour_hours`), JSONB specs, partial unique index.
 - 7 triggers, 3 stored procedures, 9 functions, 4 views (`security_invoker`).
 - Recursive CTEs (category tree, auto-assignment, status timeline), correlated and nested sub-queries, window functions, set operations - see `sql/06_queries.sql`.
 - RBAC in the database: `sql/04_security.sql`. Demonstration with expected errors: `sql/07_dml_demo.sql` → `sql/logs/07_dml_demo.log`.

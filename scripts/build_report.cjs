@@ -411,7 +411,7 @@ children.push(pageBreak());
 children.push(H1('12. Evaluation Rubrics - Completion Status'));
 children.push(table(['#', 'Criteria', 'Distribution', 'Status / where implemented'], [
   ['1', 'Database Design', 'ER diagram (2), relational schema with keys, relationships and constraints (3)', 'Completed - Sections 3 and 4; weak entity, composite / multivalued / derived attributes, recursive and M:N relationships'],
-  ['2', 'Database Creation', 'SQL DDL with constraints (4), NoSQL / vector database creation (4), technology justification (1)', 'Completed - 11 tables with PK/FK/UNIQUE/CHECK/generated column/partial index (sql/01); MongoDB collections with validators, indexes and vector index (nosql/01-02); Section 2.3-2.4'],
+  ['2', 'Database Creation', 'SQL DDL with constraints (4), NoSQL / vector database creation (4), technology justification (1)', 'Completed - 12 tables with PK/FK/UNIQUE/CHECK/generated column/partial index (sql/01); MongoDB collections with validators, indexes and vector index (nosql/01-02); Section 2.3-2.4'],
   ['3', 'SQL Operations and Queries', 'DML operations (4), nested / correlated / recursive and join queries (4)', 'Completed - seed + DML demo (sql/05, 07) and app CRUD; 16 analytical queries (sql/06)'],
   ['4', 'Advanced Database Concepts', 'Procedure / function, trigger, CTE (6), NoSQL / vector feature RUD (7)', 'Completed - 3 procedures, 9 functions, 7 triggers, 4 views, recursive CTEs; MongoDB read (vector + keyword search), update ($set/$push/$addToSet/$inc), delete'],
   ['5', 'Web Application and Database Integration', 'Next.js interface (3), backend / API and database integration (2)', 'Completed - 16 pages, 23 API routes, PostgreSQL + MongoDB integration'],
